@@ -1,0 +1,43 @@
+Key Management System - Project Module Overview
+Abstract
+The Key Management System (KMS) module is designed to securely manage and control access to
+a 256-bit AES encryption key used for protecting files stored in AWS. This system ensures that
+encryption keys never leave the user's local environment and only authorized users can access and
+use the key. It plays a central role in the privacy-preserving nature of our cloud security project.
+How It Works
+1. Key Generation
+- A strong 256-bit AES key is randomly generated using secure operating system entropy.
+- The user is prompted for a passphrase, which is then used to derive a secondary key via
+PBKDF2-HMAC with SHA256.
+- The AES key is encrypted using this derived key and securely stored in an encrypted JSON file
+(encrypted_key.json), along with a random salt and nonce.
+2. Key Decryption & Access
+- When a user needs to access the key (e.g., to encrypt or decrypt a file), they enter their
+passphrase.
+- If the passphrase is correct and their role is authorized, the AES key is decrypted and returned.
+- Access control is based on a roles.json file that defines which roles (e.g., admin) have permission.
+3. Role-Based Access Control
+- The system checks the user's role using roles.json:
+{
+"admin": true,
+"analyst": false,
+"intern": false
+}
+- Only users with true-marked roles can use the AES key.
+4. File Encryption
+- Files are encrypted using AES-GCM, which ensures confidentiality and integrity.
+- A new 12-byte nonce is generated for each encryption session.
+- The encrypted file is saved as filename.enc, containing the nonce + ciphertext.
+5. File Decryption
+- The system reads the nonce and ciphertext from the .enc file.
+- Using the same AES key, the file is decrypted and saved as filename.dec.
+Security Highlights
+- AES-GCM: Provides confidentiality + authentication in one pass.
+- Salt + PBKDF2: Prevents brute-force and rainbow table attacks on the passphrase.
+- Local-only key storage: Keys are never stored in or transmitted to the cloud.
+- Role control: Only designated roles can decrypt and use the encryption key.
+Tested Functionality
+- Key generation & secure storage
+- Authorized encryption/decryption
+- Unauthorized access denial
+- Roundtrip file integrity check
